@@ -3,8 +3,10 @@ package com.jhomlala.better_player_example
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.IBinder
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_MIN
@@ -22,6 +24,16 @@ class BetterPlayerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+
+         // Check permission at runtime for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK) != PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permission for foreground service media playback not granted", Toast.LENGTH_SHORT).show()
+                stopSelf() // Stop the service if permission is not granted
+                return START_NOT_STICKY
+            }
+        }
+
         val channelId =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 createNotificationChannel(channelId, "Channel")
@@ -70,7 +82,7 @@ class BetterPlayerService : Service() {
                 ) as NotificationManager
             notificationManager.cancel(notificationId)
         } catch (exception: Exception) {
-
+exception.printStackTrace() 
         } finally {
             stopSelf()
         }
